@@ -65,6 +65,9 @@ cbonsai is an advanced bonsai tree generator with seasonal color changes, proced
 *--bare*
 	suppress foliage and draw only the woody structure (trunk and branches). v2 engine only; the tree is identical, just with its leaves hidden. Useful for inspecting trunk shape.
 
+*--season*=_NAME_
+	force the seasonal color palette instead of choosing it from the current date. NAME is one of: _spring_, _summer_, _autumn_ (yellow), _late-autumn_ (deep red), _winter_. The forced season is rendered as its pure color, without the smooth date-driven blend between seasons.
+
 *-W*, *--save*=_FILE_
 	save progress to file [default: ~/.cache/cbonsai]
 

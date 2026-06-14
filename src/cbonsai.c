@@ -9,6 +9,7 @@
 #include <getopt.h>
 #include <time.h>
 #include <string.h>
+#include <strings.h>
 #include <wchar.h>
 #include <ctype.h>
 #include <unistd.h>
@@ -147,6 +148,7 @@ struct config {
 	char* loadFile;
 	int no_disp;
 	int hideLeaves;          // --bare: suppress foliage rendering (v2 only)
+	int season;              // --season: forced season (enum Season), or -1 for auto-by-date
 };
 
 struct ncursesObjects {
@@ -309,6 +311,8 @@ int checkKeyPress(const struct config *conf, struct counters *myCounters);
 void updateScreen(float timeStep);
 static inline int interpolate_color(int color1, int color2, float ratio);
 enum Season get_current_season_with_blend(float *blend_ratio);
+int parseSeasonName(const char *s);
+enum Season resolve_season(const struct config *conf, float *blend_ratio);
 void initBranchList(struct BranchList* list);
 void addBranch(struct BranchList* list, struct Branch branch, struct counters *myCounters);
 void removeBranch(struct BranchList* list, int index);
@@ -665,6 +669,9 @@ void printHelp(void) {
 			"      --bare             suppress foliage; draw only the woody\n"
 			"                           structure (v2 engine only; same tree,\n"
 			"                           leaves hidden)\n"
+			"      --season=NAME      force seasonal colors instead of using\n"
+			"                           the date: spring, summer, autumn,\n"
+			"                           late-autumn, winter\n"
 			"  -W, --save=FILE        save progress to file\n"
 			"                           [default: $XDG_CACHE_HOME/cbonsai\n"
 			"                            or $HOME/.cache/cbonsai]\n"
@@ -866,6 +873,32 @@ enum Season get_current_season_with_blend(float *blend_ratio) {
 	else
 		*blend_ratio = 1.0;
 	return current_season;
+}
+
+// Parse a --season name into an enum Season, or -1 if unrecognized. Accepts a
+// few friendly aliases (case-insensitive); autumn maps to the yellow early
+// fall, late-autumn to the deep-red late fall.
+int parseSeasonName(const char *s) {
+	if (!s) return -1;
+	if (!strcasecmp(s, "spring"))                                  return SPRING;
+	if (!strcasecmp(s, "summer"))                                  return SUMMER;
+	if (!strcasecmp(s, "autumn") || !strcasecmp(s, "fall") ||
+		!strcasecmp(s, "early-fall") || !strcasecmp(s, "early-autumn")) return EARLY_FALL;
+	if (!strcasecmp(s, "late-autumn") || !strcasecmp(s, "late-fall") ||
+		!strcasecmp(s, "red") || !strcasecmp(s, "late"))           return LATE_FALL;
+	if (!strcasecmp(s, "winter"))                                  return WINTER;
+	return -1;
+}
+
+// Resolve the season to colour the tree with: a forced --season (rendered as
+// the pure season, no transition blend) or, by default, the date-derived
+// season with its smooth between-season blend.
+enum Season resolve_season(const struct config *conf, float *blend_ratio) {
+	if (conf->season >= 0) {
+		*blend_ratio = 1.0f;   // pure target season (blend=1 -> current colours)
+		return (enum Season)conf->season;
+	}
+	return get_current_season_with_blend(blend_ratio);
 }
 
 void initBranchList(struct BranchList* list) {
@@ -1189,7 +1222,7 @@ void init(struct config *conf, struct ncursesObjects *objects) {
 		if (can_change_color() && COLORS >= 256) {
 			// Full 256-color terminal: define custom seasonal RGB colors
 			float blend_ratio;
-			enum Season season = get_current_season_with_blend(&blend_ratio);
+			enum Season season = resolve_season(conf, &blend_ratio);
 
 			struct ColorRGB current_colors = season_colors[season];
 			struct ColorRGB prev_colors = season_colors[(season + 4) % 5];
@@ -1216,7 +1249,7 @@ void init(struct config *conf, struct ncursesObjects *objects) {
 			// Limited terminal (cygwin, screen, linux console, ssh with basic TERM):
 			// fall back to the 8 standard colors, season-aware
 			float blend_ratio;
-			enum Season season = get_current_season_with_blend(&blend_ratio);
+			enum Season season = resolve_season(conf, &blend_ratio);
 
 			short trunk_color, leaf_color_1, leaf_color_2;
 			switch (season) {
@@ -3165,6 +3198,8 @@ void growTree_v2(struct config *conf, struct ncursesObjects *objects, struct cou
 
 #define OPT_BARE 1001
 
+#define OPT_SEASON 1002
+
 struct TreeEngine get_engine(int version) {
 	struct TreeEngine engine;
 	switch (version) {
@@ -3293,6 +3328,7 @@ int main(int argc, char* argv[]) {
 		.loadFile = createDefaultCachePath(),
 		.no_disp = 0,
 		.hideLeaves = 0,
+		.season = -1,	// -1 = auto by date; --season overrides
 	};
 
 	struct option long_options[] = {
@@ -3317,6 +3353,7 @@ int main(int argc, char* argv[]) {
 		{"name", required_argument, NULL, 'N'},
 		{"engine", required_argument, NULL, OPT_ENGINE},
 		{"bare", no_argument, NULL, OPT_BARE},
+		{"season", required_argument, NULL, OPT_SEASON},
 		{0, 0, 0, 0}
 	};
 
@@ -3496,6 +3533,14 @@ int main(int argc, char* argv[]) {
 
 		case OPT_BARE:
 			conf.hideLeaves = 1;
+			break;
+
+		case OPT_SEASON:
+			conf.season = parseSeasonName(optarg);
+			if (conf.season < 0) {
+				printf("error: invalid season: '%s' (try spring, summer, autumn, late-autumn, winter)\n", optarg);
+				quit(&conf, &objects, 1);
+			}
 			break;
 
 		// option has required argument, but it was not given

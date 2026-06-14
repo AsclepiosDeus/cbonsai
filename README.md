@@ -1,78 +1,99 @@
 # cbonsai
 
-<img src="https://i.imgur.com/rnqJx3P.gif" align="right" width="400px">
+cbonsai grows bonsai trees in your terminal — procedurally generated, colored by
+season, and animated as they grow. Every tree is different: the engine grows a
+trunk that wanders, leans, widens, and forks, then clothes it in procedural
+foliage and the occasional patch of weathered deadwood.
 
-`cbonsai` is an advanced bonsai tree generator, written in `C` using `ncurses`. It intelligently creates, colors, and positions bonsai trees with seasonal color changes, real-time growth, and advanced procedural generation. The trees are entirely configurable via CLI options and support multiple modes of operation including static display, live growth animation, and persistent real-time trees.
+<p align="center">
+  <video src="https://github.com/jakobrees/cbonsai/raw/master/assets/bonsai-loop.mp4" autoplay loop muted playsinline controls width="80%"></video>
+</p>
 
-This version includes major enhancements and new features developed by Jakob Rees, building on the original foundation by John Allbritten.
+> 30 trees, grown live. this implementation of cbonsai began as a fork of
+> [John Allbritten's cbonsai](https://gitlab.com/jallbrit/cbonsai); it has since
+> diverged a long way downstream (a rewritten growth engine, procedural foliage,
+> structural trunks, seasonal color, and persistent real-time growth).
 
-<br>
-<br>
-<br>
-<br>
+## Gallery
 
-## Key Features
+<img src="assets/tall.png" align="right" width="150" alt="A tall, low-multiplier tree">
 
-<img src="assets/cbonsai-demo.gif"  align="right" width="400px">
+Seasonal palettes — chosen automatically from the date, or forced with
+`--season`:
 
-- **Seasonal Colors**: Trees automatically change colors based on the current date, transitioning through spring greens, summer depth, autumn yellows and reds, and winter whites
-- **Named Trees**: Create persistent trees that grow in real-time over days or weeks using the `-N` option
-- **Procedural Leaf Generation**: Advanced `-P` mode generates realistic leaf distributions using position history
-- **Message System**: Display custom messages with optional timeouts
-- **Enhanced Growth Algorithm**: Sophisticated branching logic with age-based behavior and trunk splitting
-- **Live Growth Animation**: Watch your tree grow step by step with customizable timing
-- **Save/Load System**: Persistent tree state with timestamp support for real-time growth
+<table>
+  <tr>
+    <td align="center"><img src="assets/early-fall.png" width="100%" alt="Early fall"><br><sub>early fall · <code>--season autumn</code></sub></td>
+    <td align="center"><img src="assets/late-fall.png" width="100%" alt="Late fall"><br><sub>late fall · <code>--season late-autumn</code></sub></td>
+    <td align="center"><img src="assets/winter.png" width="100%" alt="Winter"><br><sub>winter · <code>--season winter</code></sub></td>
+  </tr>
+</table>
+
+A giant tree, with a message alongside it:
+
+<img src="assets/giant.png" width="85%" alt="A giant tree with a message">
+
+## Features
+
+- **Procedural foliage** — leaves grow as drifting walkers that pool into canopy
+  pads rather than a symmetric blob (`-P`).
+- **Structural branching** — the branch multiplier drives *bold structure*
+  (leans, committed forks) instead of a radial explosion.
+- **Trunk widening & taper** — trunks thicken at the base and taper as they
+  climb, fork by fork.
+- **Deadwood (jin/shari)** — limbs occasionally grow, then die back to bare,
+  bleached wood.
+- **Seasonal color** — spring greens through summer depth, autumn yellows and
+  reds, winter whites; automatic by date or pinned with `--season`.
+- **Live growth** — watch each step, at a speed you choose.
+- **Named, persistent trees** — a tree can grow over days or weeks of real time,
+  even while the program isn't running.
+- **Messages** — display text beside the tree, with an optional timeout.
+- **Save / load** — persist and resume tree state.
+- **Versioned engines** — the growth algorithm is versioned; a saved tree always
+  replays under the engine it was created with, so updates never reshape old
+  trees.
 
 ## Installation
 
-### Quick Build (macOS with Homebrew)
+You'll need a working `ncursesw` / `ncurses` library.
+
+### macOS (Homebrew)
 
 ```bash
+brew install ncurses
+git clone https://github.com/jakobrees/cbonsai.git
+cd cbonsai
 gcc -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-qual -pedantic \
     -I$(brew --prefix)/opt/ncurses/include \
     -L$(brew --prefix)/opt/ncurses/lib \
-    cbonsai.c msaw.c -o cbonsai \
+    src/cbonsai.c src/msaw.c -o cbonsai \
     $(brew --prefix)/opt/ncurses/lib/libncurses.a \
     $(brew --prefix)/opt/ncurses/lib/libpanel.a
 ```
 
-### Manual Installation
-
-You'll need to have a working `ncursesw`/`ncurses` library.
-
-#### Debian-based
+### Debian / Ubuntu
 
 ```bash
 sudo apt install libncursesw5-dev
-git clone [your-repo-url]
+git clone https://github.com/jakobrees/cbonsai.git
 cd cbonsai
 make install PREFIX=~/.local
 ```
 
-#### Fedora
+### Fedora
 
 ```bash
 sudo dnf install ncurses-devel
-git clone [your-repo-url]
+git clone https://github.com/jakobrees/cbonsai.git
 cd cbonsai
 make install PREFIX=~/.local
-```
-
-#### macOS
-
-```bash
-brew install ncurses
-git clone [your-repo-url]
-cd cbonsai
-# Follow the Quick Build command above
 ```
 
 ## Usage
 
 ```
 Usage: cbonsai [OPTION]...
-
-cbonsai is a beautifully random bonsai tree generator with seasonal colors and real-time growth.
 
 Options:
   -l, --live             live mode: show each step of growth
@@ -101,6 +122,10 @@ Options:
       --engine=INT       tree generation engine version for new trees
                            (1 or 2) [default: 2]; loaded trees use
                            their saved version
+      --bare             suppress foliage; draw only the woody structure
+                           (v2 engine only; same tree, leaves hidden)
+      --season=NAME      force seasonal colors instead of using the date:
+                           spring, summer, autumn, late-autumn, winter
   -W, --save=FILE        save progress to file [default: ~/.cache/cbonsai]
   -C, --load=FILE        load progress from file [default: ~/.cache/cbonsai]
   -v, --verbose          increase output verbosity
@@ -109,107 +134,69 @@ Options:
 
 ## Examples
 
-### Basic Usage
-
 ```bash
-# Generate a simple tree
+# A simple tree
 cbonsai
 
-# Watch it grow with live animation
+# Watch one grow, live
 cbonsai -l
 
-# Create a bigger, more complex tree
-cbonsai -L 200 -M 15 -l
+# A big, tall tree (low multiplier grows tall and slender)
+cbonsai -l -L 200 -M 4
 
-# Create a tree with a custom message
+# Pin the season regardless of the date
+cbonsai --season winter
+
+# A tree with a message beside it, cleared after 10s
 cbonsai -m "Happy Birthday!" -T 10
 ```
 
-### Named Trees (Real-time Growth)
+### Named trees (real-time growth)
+
+A named tree keeps growing in real time, even when cbonsai isn't running — it
+records when it was created and advances to the present each time you load it.
 
 ```bash
 # Create a tree that grows over 30 days (2,592,000 seconds)
 cbonsai -N 2592000 -W ~/my_tree
 
-# Load and continue growing your tree
+# Load it later and let it catch up to now
 cbonsai -C ~/my_tree
 ```
 
-### Screensaver Mode
+### Screensaver
 
 ```bash
-# Perfect for screensavers - saves/loads automatically
+# Saves/loads automatically; quits on any keypress
 cbonsai -S
 ```
 
-## Advanced Features
+### A bonsai in every terminal
 
-### Seasonal Colors
-Trees automatically display appropriate colors for the current season:
-- **Spring**: Light green growth
-- **Summer**: Deep, rich greens  
-- **Autumn**: Yellows transitioning to deep reds
-- **Winter**: Bare branches with white highlights
-
-### Procedural Leaf Generation
-When using `-P`, the algorithm tracks branch movement history to create more realistic leaf placement patterns.
-
-### Named Trees
-Named trees with `-N` create persistent trees that continue growing even when the program isn't running. Perfect for long-term displays or screensavers.
-
-## Tips
-
-### Long-term Growth
-```bash
-# Start a tree that will grow over a month ('-lP' for live growth, lest you wait a month till the tree finishes growing)
-cbonsai -N 2592000 -L 200 -M 10 -W ~/garden/oak_tree -lP
-
-# Check on it periodically
-cbonsai -C ~/garden/oak_tree
-```
-
-### Add to Shell Profile
-For a new bonsai tree every time you open a terminal:
 ```bash
 echo "cbonsai -p" >> ~/.bashrc
 ```
 
-## How it Works
+## How it works
 
-This enhanced version uses a sophisticated iterative growth algorithm instead of simple recursion (yes, potentially ruining the source  code's elegance; commpensating with visual intuitiveness). Key improvements include:
+The trunk and branches are grown by an iterative simulation: each branch is a
+walker with its own life, age, and lean that wanders, rises, sprouts shoots, and
+occasionally forks, while procedural walkers grow the foliage on top. Randomness
+comes from deterministic per-stream generators, so a given seed always produces
+the same tree — and cosmetic-only streams are kept separate from the growth
+stream so visual tweaks never reshape a saved tree.
 
-- **Dynamic Branch Management**: Branches are managed in a dynamic list with individual lifecycles
-- **Position History Tracking**: Each branch maintains a history of positions for realistic leaf placement
-- **Age-based Growth Patterns**: Different growth behaviors based on branch age and type
-- **Seasonal Color System**: Real-time color calculation based on current date with smooth transitions
-- **Persistent State**: Complex save/load system supporting real-time growth scenarios
+The growth algorithm is **versioned**. New trees use the latest engine (v2);
+trees loaded from a save file replay under whatever engine they were created
+with, so algorithm updates never change the look of an existing tree. Pass
+`--engine` to choose the engine for new trees.
 
-The algorithm carefully balances realistic growth patterns with aesthetic appeal, using probability distributions that change based on branch age, type, and environmental factors.
+## Credits
 
-## Development
-
-### Major Enhancements by Jakob Rees:
-- Complete rewrite of the growth algorithm from recursive to iterative
-- Seasonal color system with date-based transitions
-- Named tree functionality with real-time growth
-- Procedural leaf generation with position history
-- Advanced branch lifecycle management
-- Enhanced save/load system with timestamps
-- Message timeout system
-- Improved color management and terminal compatibility
-
-### Original Foundation:
-Based on the original `cbonsai` by John Allbritten, available at [gitlab.com/jallbrit/cbonsai](https://gitlab.com/jallbrit/cbonsai), which was itself inspired by earlier bonsai generators.
-
-## Contributing
-
-This project welcomes contributions! Feel free to open issues or submit pull requests.
+cbonsai is a fork of [`cbonsai` by John Allbritten](https://gitlab.com/jallbrit/cbonsai),
+which was itself inspired by earlier terminal bonsai generators. Thanks to John and 
+those prior authors for the original idea and foundation.
 
 ## License
 
-GNU GENERAL PUBLIC LICENSE
-
-## Authors
-
-**Jakob Rees** - Major enhancements and algorithm improvements  
-**John Allbritten** - Original foundation and core concepts ([original repo](https://gitlab.com/jallbrit/cbonsai))
+GNU General Public License. See [LICENSE](LICENSE).
