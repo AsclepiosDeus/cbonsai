@@ -6,7 +6,7 @@ trunk that wanders, leans, widens, and forks, then clothes it in procedural
 foliage and the occasional patch of weathered deadwood.
 
 <p align="center">
-  <video src="https://github.com/jakobrees/cbonsai/raw/master/assets/bonsai-loop.mp4" autoplay loop muted playsinline controls width="80%"></video>
+  <video src="https://github.com/user-attachments/assets/4b403762-a733-483c-be01-b99a042ca404" autoplay loop muted playsinline controls width="80%"></video>
 </p>
 
 > 30 trees, grown live. this implementation of cbonsai began as a fork of
@@ -178,7 +178,7 @@ echo "cbonsai -p" >> ~/.bashrc
 
 ## How it works
 
-<img src="assets/tall.png" align="right" width="150" alt="A tall, low-multiplier tree">
+<img src="assets/tall.png" align="right" width="130" alt="A tall, low-multiplier tree">
 
 The trunk and branches are grown by an iterative simulation: each branch is a
 walker with its own life, age, and lean that wanders, rises, sprouts shoots, and
