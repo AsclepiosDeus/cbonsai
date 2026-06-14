@@ -16,22 +16,21 @@ foliage and the occasional patch of weathered deadwood.
 
 ## Gallery
 
-<img src="assets/tall.png" align="right" width="150" alt="A tall, low-multiplier tree">
-
 Seasonal palettes — chosen automatically from the date, or forced with
 `--season`:
 
-<table>
-  <tr>
-    <td align="center"><img src="assets/early-fall.png" width="100%" alt="Early fall"><br><sub>early fall · <code>--season autumn</code></sub></td>
-    <td align="center"><img src="assets/late-fall.png" width="100%" alt="Late fall"><br><sub>late fall · <code>--season late-autumn</code></sub></td>
-    <td align="center"><img src="assets/winter.png" width="100%" alt="Winter"><br><sub>winter · <code>--season winter</code></sub></td>
-  </tr>
-</table>
+<p align="center">
+  <img src="assets/early-fall.png" width="30%" alt="Early fall — --season autumn">
+  <img src="assets/late-fall.png" width="30%" alt="Late fall — --season late-autumn">
+  <img src="assets/winter.png" width="30%" alt="Winter — --season winter">
+</p>
+<p align="center"><sub>early fall&nbsp;·&nbsp;late fall&nbsp;·&nbsp;winter</sub></p>
 
 A giant tree, with a message alongside it:
 
-<img src="assets/giant.png" width="85%" alt="A giant tree with a message">
+<p align="center">
+  <img src="assets/giant.png" width="85%" alt="A giant tree with a message">
+</p>
 
 ## Features
 
@@ -178,6 +177,8 @@ echo "cbonsai -p" >> ~/.bashrc
 ```
 
 ## How it works
+
+<img src="assets/tall.png" align="right" width="150" alt="A tall, low-multiplier tree">
 
 The trunk and branches are grown by an iterative simulation: each branch is a
 walker with its own life, age, and lean that wanders, rises, sprouts shoots, and
