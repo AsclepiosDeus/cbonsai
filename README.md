@@ -34,7 +34,7 @@ A giant tree, with a message alongside it:
 
 ## Features
 
-<img src="assets/tall.png" align="right" width="200" alt="A tall, low-multiplier tree">
+<img src="assets/tall.png" align="right" width="250" alt="A tall, low-multiplier tree">
 
 - **Procedural foliage** — leaves grow as drifting walkers that pool into canopy
   pads rather than a symmetric blob (`-P`).
