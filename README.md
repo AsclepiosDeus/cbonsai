@@ -34,6 +34,8 @@ A giant tree, with a message alongside it:
 
 ## Features
 
+<img src="assets/tall.png" align="right" width="170" alt="A tall, low-multiplier tree">
+
 - **Procedural foliage** — leaves grow as drifting walkers that pool into canopy
   pads rather than a symmetric blob (`-P`).
 - **Structural branching** — the branch multiplier drives *bold structure*
@@ -177,8 +179,6 @@ echo "cbonsai -p" >> ~/.bashrc
 ```
 
 ## How it works
-
-<img src="assets/tall.png" align="right" width="130" alt="A tall, low-multiplier tree">
 
 The trunk and branches are grown by an iterative simulation: each branch is a
 walker with its own life, age, and lean that wanders, rises, sprouts shoots, and
