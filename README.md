@@ -82,6 +82,15 @@ cd cbonsai
 make install PREFIX=~/.local
 ```
 
+### Arch
+
+```bash
+yay -S ncurses
+git clone https://github.com/jakobrees/cbonsai.git
+cd cbonsai
+make install PREFIX=~/.local
+```
+
 ### Fedora
 
 ```bash
